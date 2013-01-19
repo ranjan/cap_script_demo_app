@@ -27,30 +27,11 @@ require 'capistrano/ext/multistage'
 
 
 after "deploy:create_symlink", :link_production_db
-#after "deploy:setup", "update_ownership"
-#after "deploy:update_code", "unpack_build_gems"
-#before "deploy:create_symlink", "update_ownership"
-
-#set :rake, "/opt/ree/gems/bin/rake"
-#set(:rake) { "PATH=$PATH:/opt/ree/gems/bin/rake GEM_HOME=/home/#{user}/data/rubygems/gems rake" }
-
-#task :update_ownership do
-#  run "#{try_sudo} chown -R #{user}:users #{deploy_to}"
-#  run "#{try_sudo} chown -R #{user}:users #{deploy_to}/*"
-#end
 
 desc "Link database.yml"
 task :link_production_db do
   run "ln -nfs #{shared_path}/config/database.yml #{release_path}/config/database.yml"
 end
-
-desc "Building Native gems"
-task :unpack_build_gems do
-  run "echo `which rake`"
-  run "rake gems:unpack"
-  run "rake gems:build"
-end
-
 
 namespace :deploy do
   desc "cause Passenger to initiate a restart"
@@ -64,4 +45,13 @@ task :bundle_install, :roles => :app do
   run "cd #{release_path} && bundle install"
 end
 
+desc "Rake db:migrate"
+task :rake_db_migrate, :roles => [:app, :web] do
+  run "cd #{release_path} &&  bundle exec rake db:migrate RAILS_ENV=#{rails_env}"
+end
+
+
 after "deploy:update_code", :bundle_install
+before "deploy:symlink", :set_version, :symlink_config
+after "deploy:symlink", "rake_db_migrate"
+after "deploy:symlink", "assets:precompile"
