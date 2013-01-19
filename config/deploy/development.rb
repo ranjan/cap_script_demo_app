@@ -1,6 +1,6 @@
-role :app, "localhost"
-role :web, "localhost"
-role :db, "localhost", :primary => true
+role :app, "192.34.60.3"
+role :web, "192.34.60.3"
+role :db, "192.34.60.3", :primary => true
 set :rails_env, 'development'
 set :branch, 'master'
-set :deploy_to, "/home/ranjan/vot/development/#{application}"
+set :deploy_to, "/root/cap_script/development/#{application}"
